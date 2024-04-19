@@ -1,0 +1,264 @@
+#include <string.h>
+#include <stdlib.h>
+
+#include "pico/stdlib.h"
+#include "pico/cyw43_arch.h"
+
+#include "lwipopts.h"
+#include "lwip/apps/httpd.h"
+
+#include "access_point.h"
+// #include "cgi.h"
+// #include "ssi.h"
+#include "httpserver.h"
+#include "dhcpserver.h"
+
+// DO NOT rename these four!
+char ssid[SSID_MAX_LEN];
+char passwd[PASSWD_MAX_LEN];
+int  lan[3][4];
+
+// ip4_addr_t ip_addr, gw_addr, net_mask;
+config *_c;
+bool _need_ip;
+bool _need_gw;
+
+bool isConfigured = false;
+
+static void run_http_server();
+
+/*
+ * void run_access_point(config *config,
+ *                          bool require_static_ip,
+ *                          bool require_def_gateway)
+ * config:          pointer to configuration data
+ *                  at entry:   data found in the flash
+ *                  at return:  user entries
+ * req_static_ip:   user must provide an IP-adress and a netmask
+ * req_def_gateway. user must provide the deafault gateways IP-address
+ *
+ * Creates an access point and starts a web server that provides a page for
+ * configuring the access data and the LAN.
+ * After entering the data on this page, the access point is terminated.
+ */
+
+void run_access_point(config *config, bool req_static_ip, bool req_def_gateway)
+{
+    _c = config;
+    _need_ip = req_static_ip;
+    _need_gw = req_def_gateway;
+
+    if(_c->magic == MAGIC){
+//         strcpy(ssid, config->ssid);
+//         strcpy(passwd, config->passwd);
+//         for(int i = 0; i < 4; i++){
+//             if(req_static_ip){
+
+
+
+//         for(int i = 0; i < 4; i++){
+// #if REQUIRE_STATIC_IP == 1
+//             lan[BYTES_IP][i] = config->ip_addr[i];
+//             lan[BYTES_NETMASK][i] = config->netmask[i];
+//             if(!(config->def_gw[0] == 0 &&
+//                     config->def_gw[1] == 0 &&
+//                     config->def_gw[2] == 0 &&
+//                     config->def_gw[3] == 0))
+//                 lan[BYTES_DEF_GATEWAY][i] = config->def_gw[i];
+//             else
+//                 lan[BYTES_DEF_GATEWAY][i] = BYTE_UNSET;
+// #else
+//             lan[BYTES_IP][i] = BYTE_UNSET;
+//             lan[BYTES_NETMASK][i] = BYTE_UNSET;
+//             lan[BYTES_DEF_GATEWAY][i] = BYTE_UNSET;
+// #endif
+//         }
+    }
+    else{
+        memset(_c->ssid, '\0', SSID_MAX_LEN);
+        memset(_c->passwd, '\0', PASSWD_MAX_LEN);
+
+        if(_need_ip){
+            printf("REQUIRE STATIC IP\n");
+            _c->ip.addr = IPADDR_NONE;
+            _c->mask.addr = ipaddr_addr("255.255.255.0");
+
+            for(int i = 0; i < 4; i++)
+                lan[BYTES_IP][i] = BYTE_EMPTY;
+            lan[BYTES_NETMASK][0] = 255;
+            lan[BYTES_NETMASK][1] = 255;
+            lan[BYTES_NETMASK][2] = 255;
+            lan[BYTES_NETMASK][3] = 0;
+        }
+        else{
+            printf("DONT REQUIRE STATIC IP\n");
+            for(int i = 0; i < 4; i++){
+                lan[BYTES_IP][i] = BYTE_OPTIONAL;
+                lan[BYTES_NETMASK][i] = BYTE_OPTIONAL;
+            }
+        }
+
+        if(req_def_gateway){
+            printf("REQUIRE DEF GATEWAY IP\n");
+            for(int i = 0; i < 4; i++)
+                lan[BYTES_DEF_GATEWAY][i] = BYTE_EMPTY;
+        }
+        else{
+            printf("DONT REQUIRE DEF GATEWAY IP\n");
+            for(int i = 0; i < 4; i++)
+                lan[BYTES_DEF_GATEWAY][i] = BYTE_OPTIONAL;
+        }
+    }
+
+
+    const char *ap_name = AP_SSID;
+#ifdef AP_PASSWD
+    const char *password = AP_PASSWD;
+#else
+    const char *password = NULL;    // no password
+#endif
+
+//     cyw43_arch_enable_ap_mode(ap_name, password, CYW43_AUTH_WPA2_AES_PSK);
+
+cyw43_arch_enable_sta_mode();
+printf("Connecting to WiFi...\n");
+if (cyw43_arch_wifi_connect_timeout_ms("Miraculix", "gallier$Schiller", CYW43_AUTH_WPA2_AES_PSK, 30000)) {
+    printf("failed to connect.\n");
+    return;
+}
+else {
+    printf("connected.\n");
+}
+printf("IP-Address: %s Port: %d\n",
+       ip4addr_ntoa(netif_ip4_addr(netif_default)), HTTPD_SERVER_PORT);
+
+#if 0
+    ip4_addr_t ip, gw, mask;
+    IP4_ADDR(&ip,   192, 168,   0, 1);
+    IP4_ADDR(&mask, 255, 255, 255, 0);
+    IP4_ADDR(&gw,   192, 168,   0, 1);
+    netif_set_ipaddr(netif_default, &ip);
+    netif_set_up(netif_default);
+
+    // Start the dhcp server
+    dhcp_server_t dhcp_server;
+    dhcp_server_init(&dhcp_server, &gw, &mask);
+#endif
+    // and the http server
+    run_http_server();
+
+    while(!isConfigured) {
+        static absolute_time_t led_time;
+        static int led_on = true;
+
+        // flash the led to show that we are in config mode
+        if (absolute_time_diff_us(get_absolute_time(), led_time) < 0) {
+            led_on = !led_on;
+            cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, led_on);
+            led_time = make_timeout_time_ms(250);
+        }
+        sleep_ms(1);
+    }
+
+    config->magic = MAGIC;
+    strcpy(config->ssid, ssid);
+    strcpy(config->passwd, passwd);
+
+    if(lan[BYTES_IP][0] != BYTE_UNSET &&
+        lan[BYTES_IP][1] != BYTE_UNSET &&
+        lan[BYTES_IP][2] != BYTE_UNSET &&
+        lan[BYTES_IP][3] != BYTE_UNSET){
+        config->ip_addr[0] = lan[BYTES_IP][0];
+        config->ip_addr[1] = lan[BYTES_IP][1];
+        config->ip_addr[2] = lan[BYTES_IP][2];
+        config->ip_addr[3] = lan[BYTES_IP][3];
+    }
+    else{
+        config->ip_addr[0] = 0;
+        config->ip_addr[1] = 0;
+        config->ip_addr[2] = 0;
+        config->ip_addr[3] = 0;
+    }
+
+    if(lan[BYTES_NETMASK][0] != BYTE_UNSET &&
+        lan[BYTES_NETMASK][1] != BYTE_UNSET &&
+        lan[BYTES_NETMASK][2] != BYTE_UNSET &&
+        lan[BYTES_NETMASK][3] != BYTE_UNSET){
+        config->netmask[0] = lan[BYTES_NETMASK][0];
+        config->netmask[1] = lan[BYTES_NETMASK][1];
+        config->netmask[2] = lan[BYTES_NETMASK][2];
+        config->netmask[3] = lan[BYTES_NETMASK][3];
+        }
+    else{
+        config->netmask[0] = 0;
+        config->netmask[1] = 0;
+        config->netmask[2] = 0;
+        config->netmask[3] = 0;
+    }
+
+    if(lan[BYTES_DEF_GATEWAY][0] != BYTE_UNSET &&
+            lan[BYTES_DEF_GATEWAY][1] != BYTE_UNSET &&
+            lan[BYTES_DEF_GATEWAY][2] != BYTE_UNSET &&
+            lan[BYTES_DEF_GATEWAY][3] != BYTE_UNSET){
+        config->def_gw[0] = lan[BYTES_DEF_GATEWAY][0];
+        config->def_gw[1] = lan[BYTES_DEF_GATEWAY][1];
+        config->def_gw[2] = lan[BYTES_DEF_GATEWAY][2];
+        config->def_gw[3] = lan[BYTES_DEF_GATEWAY][3];
+    }
+    else{
+        config->def_gw[0] = 0;
+        config->def_gw[1] = 0;
+        config->def_gw[2] = 0;
+        config->def_gw[3] = 0;
+    }
+
+    // disable config modes
+    #if 0
+    dhcp_server_deinit(&dhcp_server);
+    cyw43_arch_disable_ap_mode();
+#endif
+    DEBUG_printf("Configuration done!\n");
+}
+
+
+/*
+ * forceSetup()
+ *
+ * Checks whether the Config button is pressed during startup and
+ * then for another 3 seconds.
+ */
+
+bool forceSetup(){
+    gpio_init(SETUP_GPIO);
+    gpio_set_dir(SETUP_GPIO, GPIO_IN);
+    gpio_pull_up(SETUP_GPIO);
+    if(!gpio_get(SETUP_GPIO)){
+        static absolute_time_t reset_time;
+        reset_time = make_timeout_time_ms(SETUP_DELAY * 1000);
+        while (absolute_time_diff_us(get_absolute_time(), reset_time) > 0 && !gpio_get(SETUP_GPIO))
+            sleep_ms(1);
+
+        if(!gpio_get(SETUP_GPIO)){
+            DEBUG_printf("Re-run setup requested\n");
+            return true;
+        }
+    }
+    return false;
+}
+
+/*
+ * run_http_server()
+ *
+ * the web server that provides the page for configuring the access data
+ * and the LAN
+ */
+
+static void run_http_server() {
+    httpd_init();
+    ssi_init();
+    cgi_init();
+    DEBUG_printf("HTTP-Server for setup initialized.\n");
+    DEBUG_printf("IP-Address: %s Port: %d\n",
+           ip4addr_ntoa(netif_ip4_addr(netif_default)), HTTPD_SERVER_PORT);
+}
+

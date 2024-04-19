@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <title>Pico-W Configure Wi-Fi</title>
+
+    <style>
+    html {
+        height: -webkit-fill-available;}
+
+        body{
+            width: 100vw;
+            margin: 20 20 20 20;
+            font-size: 40px;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        table, td, th {
+            font-size: 40px;
+        }
+        input {
+            font-size: 40px;
+        }
+        </style>
+    </head>
+
+    <body>
+	<h1>Pico-W Wi-Fi Setup</h1>
+	<div>
+	Configure access to your wireless network on this page.<BR>
+	If your network supports DHCP and you do not want to assign a fixed IP address, leave the "IP address", "Netmask" and "Default Gateway" fields empty.<br><br>
+
+	Click on "Setup" to save. The Pico-W restarts and connects to your wireless network.<br>
+	</div>
+	<br>
+	<form method="get" action="/setup.cgi">
+		<table>
+		<tr><td  colspan="8"><b>Wi-Fi</b></td></tr>
+		<tr>
+			<td><label for="ssid">SSID:</label></td>
+			<td colspan="7"><input type="text" id="ssid" name="ssid" maxlength="32" <!--#SSID-->></td>
+		</tr>
+		<tr>
+			<td><label for="passwd">Password:</label></td>
+			<td colspan="7"><input type="password" id="passwd" name="passwd" maxlength="63" <!--#PASSWD-->></td>
+            </tr>
+
+		<tr><td  colspan="8"><br><b>LAN</b></td></tr>
+		<tr>
+			<td><label>IP-Address:</label></td>
+			<td><input type="input" name="B0" size="3" pattern="[0-9]{1,3}" title="0 - 255" <!--#B0-->></td>
+			<td align ="center">.</td>
+			<td><input type="input" name="B1" size="3" pattern="[0-9]{1,3}" title="0 - 255" <!--#B1-->></td>
+			<td>.</td>
+			<td><input type="input" name="B2" size="3" pattern="[0-9]{1,3}" title="0 - 255" <!--#B2-->></td>
+			<td>.</td>
+			<td><input type="input" name="B3" size="3" pattern="[0-9]{1,3}" title="0 - 255" <!--#B3-->></td>
+		</tr>
+		<tr>
+			<td><label>Netmask:</label></td>
+			<td><input type="input" name="B4" size="3" pattern="[0-9]{1,3}" title="0 - 255" <!--#B4-->></td>
+			<td>.</td>
+			<td><input type="input" name="B5" size="3" pattern="[0-9]{1,3}" title="0 - 255" <!--#B5-->></td>
+			<td>.</td>
+			<td><input type="input" name="B6" size="3" pattern="[0-9]{1,3}" title="0 - 255" <!--#B6-->></td>
+			<td>.</td>
+			<td><input type="input" name="B7" size="3" pattern="[0-9]{1,3}" title="0 - 255" <!--#B7-->></td>
+		</tr>
+		<tr>
+			<td><label>Default Gateway:</label></td>
+			<td><input type="input" name="B8" size="3" pattern="[0-9]{1,3}" title="0 - 255" <!--#B8-->></td>
+			<td>.</td>
+			<td><input type="input" name="B9" size="3" pattern="[0-9]{1,3}" title="0 - 255" <!--#B9-->></td>
+			<td>.</td>
+			<td><input type="input" name="B10" size="3" pattern="[0-9]{1,3}" title="0 - 255" <!--#B10-->></td>
+			<td>.</td>
+			<td><input type="input" name="B11" size="3" pattern="[0-9]{1,3}" title="0 - 255" <!--#B11-->></td>
+		</tr>
+		</table>
+		<br><br>
+		<input value="Setup" type="submit">
+		<br><br>
+		</form>
+	</body>
+</html>
+

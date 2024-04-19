@@ -1,0 +1,6 @@
+build
+*~
+*swp
+pico_sdk_import.cmake
+
+

@@ -64,9 +64,15 @@ void main(void) {
 
     if(config.magic != MAGIC || forceSetup()){
         printf("\nPico is in config mode!\n");
+
+// Modify according to your requirements.
+        // Static IP and default gateway are optional
         run_access_point(&config, false, false);
-//          run_access_point(&config, true, false);
-//        run_access_point(&config, true, true);
+
+        // Static IP is required, default gateway is optional
+//      run_access_point(&config, true, false);
+        // Static IP and default gateway are required
+//      run_access_point(&config, true, true);
 
         // store the configuration in flash memory
         flash_write_page((uint8_t *)&config, sizeof(config), WIFI_CONFIG_PAGE);

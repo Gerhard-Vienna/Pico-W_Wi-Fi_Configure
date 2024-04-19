@@ -70,3 +70,4 @@ This software is licensed under the "The 3-Clause BSD Licence".<br>
 See LICENSE.TXT for details.
 
 This license also applies to the pico-sdk examples used as a basis to create this software, with the exception of the dhcp-server, which is licensed under the 'MIT License'.
+

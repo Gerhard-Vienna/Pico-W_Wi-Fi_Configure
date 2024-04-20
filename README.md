@@ -33,11 +33,9 @@ Copy the `wifi_setup` subdirectory to your project. Copy the lines in `main.c` b
 How to build:
 Refer to chapter 8 of 'Getting started with Raspberry Pi Pico' for instructions.
 
-Follow the instructions in "Getting started with Raspberry Pi Pico", chapter 8.
-
 1. Create a directory for your project sitting alongside the pico-sdk directory.
 2. Download "Wi-Fi Configure" to this directory.
-3. Then copy the pico_sdk_import.cmake file from the external folder in your pico-sdk installation to your test project folder.
+3. Then copy the pico_sdk_import.cmake file from the external folder in your pico-sdk installation to your project folder.
 4. Now the usual steps:
     $ mkdir build
     $ cd build

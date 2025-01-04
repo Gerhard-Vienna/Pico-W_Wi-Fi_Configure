@@ -1,10 +1,9 @@
 /**
  * This file is part of "Wi-Fi Configure.
  *
- * This software makes it unnecessary to know the network name, password
- * and - if required - IP address, network mask and default gateway when
- * compiling. These can be set directly on the Pico-W and also modified
- * afterwards.
+ * This software eliminates the need to know the network name, password and,
+ * if required, IP address, network mask and default gateway at compile time.
+ * These can be set directly on the Pico-W and also changed afterwards.
  *
  * Copyright (c) 2024 Gerhard Schiller gerhard.schiller@pm.me
  *
@@ -83,10 +82,25 @@ void main(void) {
 
 /* Code for your device starts here */
     printf("\nPico is in run mode!\n");
-
     cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
 
+    // cyw43_arch_enable_sta_mode();
     cyw43_arch_enable_sta_mode();
+    if(config.ip.addr != IPADDR_NONE){
+#if LWIP_DHCP == 1
+        dhcp_release_and_stop(netif_default);
+#endif
+        netif_set_addr(netif_default, &(config.ip), &(config.mask), &(config.gw));
+        netif_set_up(netif_default);
+#if LWIP_DHCP == 1
+        dhcp_inform(netif_default);
+#endif
+        printf("Using static IP: %s\n", ip4addr_ntoa(netif_ip4_addr(netif_default)));
+    }
+    else{
+        printf("Using DHCP: ");
+    }
+
     printf("Connecting to WiFi...\n");
     if (cyw43_arch_wifi_connect_timeout_ms(config.ssid, config.passwd, CYW43_AUTH_WPA2_AES_PSK, 30000)) {
         printf("failed to connect.\n");
@@ -94,21 +108,10 @@ void main(void) {
     }
     else {
         printf("connected.\n");
+        cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);
     }
-    cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);
 
-    if(config.ip.addr != IPADDR_NONE){
-        printf("Using static IP: ");
-        netif_set_addr(netif_default, &(config.ip), &(config.mask), &(config.gw));
-        netif_set_up(netif_default);
-    }
-    else{
-        printf("Using DHCP: ");
-    }
-    printf("%s\n",
-           ip4addr_ntoa(netif_ip4_addr(netif_default)));
-
-    // Just an example what you can do...
+    // Just to show you what can be done...
     run_tcp_server(clear_flash);
 
     // NOT_REACHED

@@ -1,10 +1,9 @@
 /**
  * This file is part of "Wi-Fi Configure.
  *
- * This software makes it unnecessary to know the network name, password
- * and - if required - IP address, network mask and default gateway when
- * compiling. These can be set directly on the Pico-W and also modified
- * afterwards.
+ * This software eliminates the need to know the network name, password and,
+ * if required, IP address, network mask and default gateway at compile time.
+ * These can be set directly on the Pico-W and also changed afterwards.
  *
  * Copyright (c) 2024 Gerhard Schiller gerhard.schiller@pm.me
  *

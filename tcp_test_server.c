@@ -1,10 +1,9 @@
 /**
  * This file is part of "Wi-Fi Configure.
  *
- * This software makes it unnecessary to know the network name, password
- * and - if required - IP address, network mask and default gateway when
- * compiling. These can be set directly on the Pico-W and also modified
- * afterwards.
+ * This software eliminates the need to know the network name, password and,
+ * if required, IP address, network mask and default gateway at compile time.
+ * These can be set directly on the Pico-W and also changed afterwards.
  *
  * Copyright (c) 2024 Gerhard Schiller gerhard.schiller@pm.me
  *
@@ -184,8 +183,19 @@ err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err
 
         return tcp_server_send_data(arg, state->client_pcb);
     }
+    else if (strcmp(state->buffer_recv, "conf!") == 0) {
+        state->buffer_recv[state->recv_len] = '\0';
+        char    buf[64];
+        sprintf(buf, "IP-Address: %s", ip4addr_ntoa(netif_ip4_addr(netif_default)));
+
+        // Send  buffer
+        memcpy(state->buffer_sent, buf, strlen(buf) + 1);
+        memset(state->buffer_recv, '\0', BUF_SIZE);
+        state->recv_len = 0;
+        return tcp_server_send_data(arg, state->client_pcb);
+    }
     else if (strcmp(state->buffer_recv, "erase!") == 0) {
-        clear_config();
+            clear_config();
 
         // Send  buffer
         strcpy(state->buffer_sent, "Erasing flash requested!");

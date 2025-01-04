@@ -1,9 +1,9 @@
 /**
  * This file is part of "Wi-Fi Configure.
  *
- * This software makes it unnecessary to know the network name, password
- * and - if required - IP address, network mask and default gateway when
- * compiling. These can be set directly on the Pico-W and also modified
+ * This software eliminates the need to know the network name, password and,
+ * if required, IP address, network mask and default gateway at compile time.
+ * These can be set directly on the Pico-W and also changed afterwards.
  * afterwards.
  *
  * Copyright (c) 2024 Gerhard Schiller gerhard.schiller@pm.me
@@ -86,7 +86,7 @@ void run_access_point(config *config, bool req_static_ip, bool req_def_gateway)
     dhcp_server_init(&dhcp_server, &gw, &mask);
 
     DEBUG_printf("Access point for configuration created\n");
-    DEBUG_printf("SSID: \"%s\", PSK: \"%s\"\n", ap_name, password);
+    DEBUG_printf("SSID: \"%s\", PSK: \"%s\"\n", ap_name, password?password:"none");
 
 #else
     cyw43_arch_enable_sta_mode();

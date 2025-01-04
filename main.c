@@ -84,7 +84,8 @@ void main(void) {
     printf("\nPico is in run mode!\n");
     cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
 
-    // cyw43_arch_enable_sta_mode();
+
+/* Typical connection sequence ends here */
     cyw43_arch_enable_sta_mode();
     if(config.ip.addr != IPADDR_NONE){
 #if LWIP_DHCP == 1
@@ -110,6 +111,7 @@ void main(void) {
         printf("connected.\n");
         cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);
     }
+    /* Typical connection sequence ends here */
 
     // Just to show you what can be done...
     run_tcp_server(clear_flash);

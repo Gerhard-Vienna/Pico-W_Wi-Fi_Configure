@@ -27,7 +27,11 @@ To change the stored data afterwards, the 'SETUP_GPIO' input (GPIO22) must be pu
 If you require the user to enter a fixed IP address (which means you don't need DHCP support), set LWIP_DHCP to 0 in lwiopts.h. This will reduce the size of the code.
 
 # How to use this software:
-Copy the `wifi_setup` subdirectory into your project. Copy the lines in `main.c` between the "configuration code starts here / ends here" tags to somewhere near the beginning of your code. Do not forget to include `access_point.h`.
+Copy the `wifi_setup` subdirectory into your project.
+Copy the lines in `main.c` between the "configuration code starts here / ends here" tags to somewhere near the beginning of your code.
+Use the code between the "Typical connection sequence starts/ends here" tags as a template.
+
+Do not forget to include `access_point.h`.
 "CmakeLists.txt" shows the necessary directives, directories to include in the search path and link libraries.
 
 # The demo software:
